@@ -148,9 +148,47 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Recent Orders */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Commandes Récentes</h2>
+      {/* Two-column section: Recent Orders + Top Selling Products */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Top Selling Products */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Produits les Plus Vendus</h2>
+          {stats?.top_selling_products?.length > 0 ? (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qté vendue</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Revenus</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {stats.top_selling_products.map((product, index) => (
+                  <tr key={product.product_id}>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                      <span className="inline-flex items-center gap-2">
+                        <span className="text-gray-400 font-mono text-xs w-4">{index + 1}</span>
+                        {product.product_name}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-semibold">
+                      {product.total_quantity}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+                      <CurrencyAmount amount={product.total_revenue} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-gray-500 text-sm">Aucune vente complétée pour le moment.</p>
+          )}
+        </div>
+
+        {/* Recent Orders */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Commandes Récentes</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -190,6 +228,7 @@ const Dashboard = () => {
               ))}
             </tbody>
           </table>
+        </div>
         </div>
       </div>
     </div>

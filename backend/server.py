@@ -779,8 +779,24 @@ async def get_dashboard_stats():
     recent_orders_data = await db.orders.find().sort("created_at", -1).limit(5).to_list(5)
     recent_orders = [Order(**order) for order in recent_orders_data]
     
-    # Top selling products (simplified)
-    top_selling_products = []
+    # Top selling products — aggregate quantities sold across all completed orders
+    completed_orders = await db.orders.find({"status": "completed"}).to_list(10000)
+    product_sales: Dict[str, Dict[str, Any]] = {}
+    for order in completed_orders:
+        for item in order.get("items", []):
+            pid = item.get("product_id", "")
+            if pid not in product_sales:
+                product_sales[pid] = {
+                    "product_id": pid,
+                    "product_name": item.get("product_name", ""),
+                    "total_quantity": 0,
+                    "total_revenue": 0.0,
+                }
+            product_sales[pid]["total_quantity"] += item.get("quantity", 0)
+            product_sales[pid]["total_revenue"] += item.get("total_price", 0.0)
+    top_selling_products = sorted(
+        product_sales.values(), key=lambda x: x["total_quantity"], reverse=True
+    )[:5]
     
     return DashboardStats(
         total_sales_today=total_sales_today,
