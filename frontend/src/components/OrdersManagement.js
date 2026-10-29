@@ -84,6 +84,18 @@ const OrdersManagement = () => {
     }
   };
 
+  const deleteOrder = async (orderId) => {
+    if (!window.confirm("Supprimer cette commande ? Le stock sera restauré.")) return;
+    try {
+      await axios.delete(`${API}/orders/${orderId}`);
+      fetchOrders();
+      if (selectedOrder?.id === orderId) setShowOrderDetails(false);
+    } catch (error) {
+      const msg = error.response?.data?.detail || "Erreur lors de la suppression";
+      alert(msg);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
@@ -283,6 +295,14 @@ const OrdersManagement = () => {
                       >
                         🖨️ Facture
                       </button>
+                      {order.status !== 'completed' && (
+                        <button
+                          onClick={() => deleteOrder(order.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          🗑️ Supprimer
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

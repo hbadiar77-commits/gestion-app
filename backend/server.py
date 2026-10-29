@@ -715,6 +715,28 @@ async def update_order(order_id: str, order_update: OrderUpdate):
     return Order(**updated_order)
 
 
+@api_router.delete("/orders/{order_id}")
+async def delete_order(order_id: str):
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.get("status") == OrderStatus.COMPLETED:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete a completed order"
+        )
+    # Restore stock for each item
+    for item in order.get("items", []):
+        await db.products.update_one(
+            {"id": item.get("product_id")},
+            {"$inc": {"stock_quantity": item.get("quantity", 0)}}
+        )
+    # Remove associated stock movements
+    await db.stock_movements.delete_many({"reference_id": order_id})
+    await db.orders.delete_one({"id": order_id})
+    return {"message": "Order deleted successfully"}
+
+
 # =================== STOCK ENDPOINTS ===================
 
 @api_router.post("/stock/movements", response_model=StockMovement)
